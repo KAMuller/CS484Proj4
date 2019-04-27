@@ -1,3 +1,5 @@
+import sys
+
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
@@ -84,8 +86,12 @@ trainList = trainList[1:-1]
 print(trainList[0][0])
 movieVect = [1, 1, 1, 1, 1, 1, 1, 1, 1]
 userProfiles = []
-for line in trainList:
-    if not uexists(userProfiles, line[0]):
+print("Creating User Taste Profiles")
+curUser = 0
+for prog, line in enumerate(trainList):
+    if curUser != line[0]:
+    # if not uexists(userProfiles, line[0]):
+        curUser = line[0]
         profile = [line[0]]
         proMovies = []
         proMovieScores = []
@@ -96,13 +102,25 @@ for line in trainList:
     # get movie vector from id here, store vector in movieVect
     userProfiles[index][1].append(movieVect)
     userProfiles[index][2].append(line[2])
-print(userProfiles[0][0])
-print(userProfiles[0][1])
-print(len(userProfiles[0][1]))
-print(userProfiles[0][2])
-print(len(userProfiles[0][2]))
+    progPerc = str(prog/(len(trainList)))
+    progPerc = progPerc[0:4]
+    sys.stdout.write("\r%s%s" % ('%', progPerc))
+    sys.stdout.flush()
+print("\rDone")
+print(len(userProfiles))
+movMin = 99999
+movMax = 0
+for x in userProfiles:
+    if len(x[1]) < movMin:
+        movMin = len(x[1])
+    if len(x[1]) > movMin:
+        movMax = len(x[1])
+print(movMin)
+print(movMax)
 
-k = 10
+
+exit()
+k = 15
 outputScores = []
 for line in testList:
     index = getuidindex(userProfiles, line[0])

@@ -1,5 +1,4 @@
 import sys
-
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
@@ -67,6 +66,8 @@ with open('test.dat', 'r') as testFile:
         testList[-1][-1] = testList[-1][-1].replace('\n', '')
 # print(testList[1])
 
+
+
 def uexists(profiles, uid):
     for x in profiles:
         if uid == x[0]:
@@ -79,6 +80,27 @@ def getuidindex(profiles, uid):
         if uid == val[0]:
             return index
     return -1
+
+
+movList = []
+movID = 0
+movInd = -1
+for x in mTagsList:
+    if movID != x[0]:
+        movInd += 1
+        movID = x[0]
+        movie = [x[0]]
+        movVect = []
+        tagWeight = []
+        movie.append(movVect)
+        movie.append(tagWeight)
+        movList.append(movie)
+#     get tag FROM X[1] AND tagsList
+    tag = getTagString(x[1])
+    movList[movInd][1].append()
+    movList[movInd][2].append(x[2])
+
+
 
 
 # placeholder vector

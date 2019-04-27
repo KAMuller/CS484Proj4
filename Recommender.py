@@ -67,7 +67,12 @@ with open('test.dat', 'r') as testFile:
         testList[-1][-1] = testList[-1][-1].replace('\n', '')
 # print(testList[1])
 #################################################################
-
+def getTagString(tagID):
+    for i in tagsList:
+        print(i)
+        if tagID == i[0]:
+            return i[1]
+    return ''
 def uexists(profiles, uid):
     for x in profiles:
         if uid == x[0]:

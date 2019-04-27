@@ -66,6 +66,7 @@ with open('test.dat', 'r') as testFile:
         testList.append(testSplitLine)
         testList[-1][-1] = testList[-1][-1].replace('\n', '')
 # print(testList[1])
+#################################################################
 
 def uexists(profiles, uid):
     for x in profiles:

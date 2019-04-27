@@ -67,6 +67,7 @@ with open('test.dat', 'r') as testFile:
         testSplitLine = line.split(' ')
         testList.append(testSplitLine)
         testList[-1][-1] = testList[-1][-1].replace('\n', '')
+    testList = testList[1:-1]
 # print(testList[1])
 def getTagString(tagID):
     for i in tagsList:
@@ -93,6 +94,7 @@ movID = 0
 movInd = -1
 string = ''
 firstCheck = False
+print("Vectorizing")
 for prog,x in enumerate(mTagsList):
     if movID != x[0]:
         if firstCheck:
@@ -115,27 +117,26 @@ for prog,x in enumerate(mTagsList):
         a = a - 1
     progPerc = str(prog/(len(mTagsList)))
     progPerc = progPerc[0:4]
-
     sys.stdout.write("\r%s%s" % ('%', progPerc))
     sys.stdout.flush()
+print('\rDone')
 fullMovList.append(string)
 
-print(movList)
-print("Index 0 of FullMoveList: ", fullMovList[0:2])
 vectorizer = TfidfVectorizer()
 vector = vectorizer.fit_transform(fullMovList)
-
-print("the vector is", vector[movList[0][1]])
-print("The length of moveList: ", len(movList))
-print("Vector is: ", np.shape(vector))
-exit()
+vector = vector.toarray()
+print(vector[0])
 # placeholder vector
+def getVector(mID):
+    for i in movList:
+        if i[0] == mID:
+            return vector[i[1]]
+    return 0
 trainList = trainList[1:-1]
-print(trainList[0][0])
-movieVect = [1, 1, 1, 1, 1, 1, 1, 1, 1]
 userProfiles = []
 print("Creating User Taste Profiles")
 curUser = 0
+index = 0
 for prog, line in enumerate(trainList):
     if curUser != line[0]:
     # if not uexists(userProfiles, line[0]):
@@ -146,41 +147,51 @@ for prog, line in enumerate(trainList):
         profile.append(proMovies)
         profile.append(proMovieScores)
         userProfiles.append(profile)
-    index = getuidindex(userProfiles, line[0])
+        index = getuidindex(userProfiles, line[0])
     # get movie vector from id here, store vector in movieVect
-    userProfiles[index][1].append(movieVect)
+    userProfiles[index][1].append(getVector(line[1]))
     userProfiles[index][2].append(line[2])
     progPerc = str(prog/(len(trainList)))
     progPerc = progPerc[0:4]
     sys.stdout.write("\r%s%s" % ('%', progPerc))
     sys.stdout.flush()
 print("\rDone")
-print(len(userProfiles))
-movMin = 99999
-movMax = 0
-for x in userProfiles:
-    if len(x[1]) < movMin:
-        movMin = len(x[1])
-    if len(x[1]) > movMin:
-        movMax = len(x[1])
-print(movMin)
-print(movMax)
-
-
-exit()
+print("There are: ", len(userProfiles), "User Profiles")
+# movMin = 99999
+# movMax = 0
+# for x in userProfiles:
+#     if len(x[1]) < movMin:
+#         movMin = len(x[1])
+#     if len(x[1]) > movMin:
+#         movMax = len(x[1])
+# print(movMin)
+# print(movMax)
+print("The first user is: ", userProfiles[0][0])
+print("The movie vectors for profile 0 are: ", userProfiles[0][1], "Length: ", len(userProfiles[0][1]))
+print("The movie scores for profile 0 are: ", userProfiles[0][2], "Length: ", len(userProfiles[0][2]))
+# exit()
 k = 15
 outputScores = []
+# testList = the data from test.dat
+fistCheck = False
+current_user = 0
+testMovVect = []
 for line in testList:
     index = getuidindex(userProfiles, line[0])
     # get movie vector and store to variable testMovVect
-    testMovVect = []
-    similarities = cosine_similarity(userProfiles[index], testMovVect)
-    sortO = (-similarities).argsort(axis=1)[:, :k]
+    testMovVect = getVector(line[1]).reshape(1, -1)
+    similarities = cosine_similarity(testMovVect, userProfiles[index][1])
+    print(similarities)
+    sortO = (-similarities).argsort(axis=1)[:k]
+    print("sortO is: ", sortO)
     weightTot = 0
     weightSum = 0
-    for x in sortO:
-        weightTot += similarities[x]
-        weightSum = similarities[x] * userProfiles[index][2][x]
-    outputScores.append(weightSum/weightTot)
-
+    for a in range(len(sortO)):
+        x = int(sortO[0][a])
+        print("similarities[0][x] is: ", similarities[0][x])
+        print("user profiles is: ", userProfiles[index][2][x])
+        weightTot += float(similarities[0][x])
+        weightSum = float(similarities[0][x]) * float(userProfiles[index][2][x])
+outputScores.append(weightSum/weightTot)
+print("The output scores are\n", outputScores)
 

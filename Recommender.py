@@ -91,29 +91,39 @@ movList = []
 fullMovList = []
 movID = 0
 movInd = -1
+string = ''
 for prog,x in enumerate(mTagsList):
     if movID != x[0]:
         movInd += 1
         movID = x[0]
         movie = [x[0]]
-        movVect = []
+        movVect = -1
         movie.append(movVect)
         movList.append(movie)
+        fullMovList.append(string)
+        string = ''
+        movList[movInd][1] = len(fullMovList) - 1
 #     get tag FROM X[1] AND tagsList
     tag = getTagString(x[1])
-    movList[movInd][1].append(tag)
+    string += " " + tag
     a = int(x[2])
     while a > 1:
-        movList[movInd][1].append(tag)
+        string += " " + tag
         a = a - 1
-    fullMovList.append(movList[movInd][1])
     progPerc = str(prog/(len(mTagsList)))
     progPerc = progPerc[0:4]
     sys.stdout.write("\r%s%s" % ('%', progPerc))
     sys.stdout.flush()
-print(movList[0])
-print(fullMovList[0])
+fullMovList.append(string)
+fullMovList = fullMovList[1:-1]
+print(movList)
+print("Index 0 of FullMoveList: ", fullMovList[0:2])
+vectorizer = TfidfVectorizer()
+vector = vectorizer.fit_transform(fullMovList)
 
+print("the vector is", vector[movList[0][1]])
+print("The length of moveList: ", len(movList))
+print("Vector is: ", vector[7153])
 exit()
 # placeholder vector
 trainList = trainList[1:-1]

@@ -1,5 +1,5 @@
 import sys
-
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
@@ -38,17 +38,19 @@ with open('movie_genres.dat', 'r') as genFile:
 mTagsList = []
 with open('movie_tags.dat', 'r') as mTagsFile:
     for line in mTagsFile:
-        mTagsSplitLine = line.split(' ')
+        mTagsSplitLine = line.split('\t')
         mTagsList.append(mTagsSplitLine)
         mTagsList[-1][-1] = mTagsList[-1][-1].replace('\n', '')
+    mTagsList = mTagsList[1:-1]
 # print(mTagsList[1])
 
 tagsList = []
 with open('tags.dat', 'r') as tagsFile:
     for line in tagsFile:
-        tagsSplitLine = line.split(' ')
+        tagsSplitLine = line.split('\t')
         tagsList.append(tagsSplitLine)
         tagsList[-1][-1] = tagsList[-1][-1].replace('\n', '')
+    tagsList = tagsList[1:-1]
 # print(tagsList[1])
 
 useTList = []
@@ -66,6 +68,11 @@ with open('test.dat', 'r') as testFile:
         testList.append(testSplitLine)
         testList[-1][-1] = testList[-1][-1].replace('\n', '')
 # print(testList[1])
+def getTagString(tagID):
+    for i in tagsList:
+        if tagID == i[0]:
+            return i[1]
+    return ''
 
 def uexists(profiles, uid):
     for x in profiles:
@@ -80,7 +87,34 @@ def getuidindex(profiles, uid):
             return index
     return -1
 
+movList = []
+fullMovList = []
+movID = 0
+movInd = -1
+for prog,x in enumerate(mTagsList):
+    if movID != x[0]:
+        movInd += 1
+        movID = x[0]
+        movie = [x[0]]
+        movVect = []
+        movie.append(movVect)
+        movList.append(movie)
+#     get tag FROM X[1] AND tagsList
+    tag = getTagString(x[1])
+    movList[movInd][1].append(tag)
+    a = int(x[2])
+    while a > 1:
+        movList[movInd][1].append(tag)
+        a = a - 1
+    fullMovList.append(movList[movInd][1])
+    progPerc = str(prog/(len(mTagsList)))
+    progPerc = progPerc[0:4]
+    sys.stdout.write("\r%s%s" % ('%', progPerc))
+    sys.stdout.flush()
+print(movList[0])
+print(fullMovList[0])
 
+exit()
 # placeholder vector
 trainList = trainList[1:-1]
 print(trainList[0][0])

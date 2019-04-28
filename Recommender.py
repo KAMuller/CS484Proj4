@@ -184,7 +184,7 @@ for prog, line in enumerate(actorList):
     progPerc = progPerc[0:4]
     sys.stdout.write("\r%s%s" % ('3/3 %', progPerc))
     sys.stdout.flush()
-
+print('\rDone')
 print("The first full movie list is now: ", fullMovList[0])
 
 vectorizer = TfidfVectorizer()
@@ -227,8 +227,12 @@ for prog, line in enumerate(trainList):
         userProfiles.append(profile)
         index = getuidindex(userProfiles, line[0])
     # get movie vector from id here, store vector in movieVect
-    userProfiles[index][1].append(getVector(line[1]))
-    userProfiles[index][2].append(line[2])
+    vect = getVector(line[1])
+    if not np.array_equal(vect, np.array([9, 9])):
+        userProfiles[index][1].append(getVector(line[1]))
+        userProfiles[index][2].append(line[2])
+    # else:
+        # print("no tags for ", line[1])
     progPerc = str(prog/(len(trainList)))
     progPerc = progPerc[0:4]
     sys.stdout.write("\r%s%s" % ('%', progPerc))
@@ -254,7 +258,7 @@ outputScores = []
 fistCheck = False
 current_user = 0
 testMovVect = []
-for line in testList:
+for prog, line in testList:
     index = getuidindex(userProfiles, line[0])
     # get movie vector and store to variable testMovVect
     testMovVect = getVector(line[1]).reshape(1, -1)

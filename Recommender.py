@@ -131,23 +131,8 @@ def getVector(mID):
     for i in movList:
         if i[0] == mID:
             return vector[i[1]]
-    return np.array([9, 9])
+    return 0
 trainList = trainList[1:-1]
-
-def checkMiss(mid, mList):
-    for el in mList:
-        if mid == el:
-            return False
-    return True
-
-
-missingMovies = []
-for x in testList:
-    vect = getVector(x[1])
-    if np.array_equal(vect, np.array([9, 9])):
-        if checkMiss(x[1], missingMovies):
-            missingMovies.append(x[1])
-print(len(missingMovies))
 userProfiles = []
 print("Creating User Taste Profiles")
 curUser = 0
@@ -164,18 +149,14 @@ for prog, line in enumerate(trainList):
         userProfiles.append(profile)
         index = getuidindex(userProfiles, line[0])
     # get movie vector from id here, store vector in movieVect
-    vect = getVector(line[1])
-    if not np.array_equal(vect, np.array([9, 9])):
-        userProfiles[index][1].append(getVector(line[1]))
-        userProfiles[index][2].append(line[2])
-    # else:
-        # print("no tags for ", line[1])
+    userProfiles[index][1].append(getVector(line[1]))
+    userProfiles[index][2].append(line[2])
     progPerc = str(prog/(len(trainList)))
     progPerc = progPerc[0:4]
     sys.stdout.write("\r%s%s" % ('%', progPerc))
     sys.stdout.flush()
 print("\rDone")
-# print("There are: ", len(userProfiles), "User Profiles")
+print("There are: ", len(userProfiles), "User Profiles")
 # movMin = 99999
 # movMax = 0
 # for x in userProfiles:
@@ -185,9 +166,9 @@ print("\rDone")
 #         movMax = len(x[1])
 # print(movMin)
 # print(movMax)
-# print("The first user is: ", userProfiles[0][0])
-# print("The movie vectors for profile 0 are: ", userProfiles[0][1], "Length: ", len(userProfiles[0][1]))
-# print("The movie scores for profile 0 are: ", userProfiles[0][2], "Length: ", len(userProfiles[0][2]))
+print("The first user is: ", userProfiles[0][0])
+print("The movie vectors for profile 0 are: ", userProfiles[0][1], "Length: ", len(userProfiles[0][1]))
+print("The movie scores for profile 0 are: ", userProfiles[0][2], "Length: ", len(userProfiles[0][2]))
 # exit()
 k = 15
 outputScores = []
@@ -199,22 +180,18 @@ for line in testList:
     index = getuidindex(userProfiles, line[0])
     # get movie vector and store to variable testMovVect
     testMovVect = getVector(line[1]).reshape(1, -1)
-    print(index)
-    print(len(testMovVect[0]))
-    print(len(userProfiles[index][1]))
-    # print(userProfiles[index][1])
-    similarities = cosine_similarity(userProfiles[index][1], testMovVect)
-    # print(similarities)
+    similarities = cosine_similarity(testMovVect, userProfiles[index][1])
+    print(similarities)
     sortO = (-similarities).argsort(axis=1)[:k]
-    # print("sortO is: ", sortO)
+    print("sortO is: ", sortO)
     weightTot = 0
     weightSum = 0
     for a in range(len(sortO)):
-        x = int(sortO[a])
-        # print("similarities[0][x] is: ", similarities[0][x])
-        # print("user profiles is: ", userProfiles[index][2][x])
-        weightTot += float(similarities[x])
-        weightSum = float(similarities[x]) * float(userProfiles[index][2][x])
+        x = int(sortO[0][a])
+        print("similarities[0][x] is: ", similarities[0][x])
+        print("user profiles is: ", userProfiles[index][2][x])
+        weightTot += float(similarities[0][x])
+        weightSum = float(similarities[0][x]) * float(userProfiles[index][2][x])
 outputScores.append(weightSum/weightTot)
 print("The output scores are\n", outputScores)
 

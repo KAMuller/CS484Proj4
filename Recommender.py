@@ -1,3 +1,4 @@
+import os
 import sys
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -26,14 +27,16 @@ with open('movie_directors.dat', 'r') as dirFile:
         dirSplitLine = line.split('\t')
         dirList.append(dirSplitLine)
         dirList[-1][-1] = dirList[-1][-1].replace('\n', '')
+    dirList = dirList[1:-1]
 # print(dirList[1])
 
 genresList = []
 with open('movie_genres.dat', 'r') as genFile:
     for line in genFile:
-        genSplitLine = line.split(' ')
+        genSplitLine = line.split('\t')
         genresList.append(genSplitLine)
         genresList[-1][-1] = genresList[-1][-1].replace('\n', '')
+    genresList = genresList[1:-1]
 # print(genresList[1])
 
 mTagsList = []
@@ -126,7 +129,7 @@ for prog,x in enumerate(mTagsList):
         a = a - 1
     progPerc = str(prog/(len(mTagsList)))
     progPerc = progPerc[0:4]
-    sys.stdout.write("\r%s%s" % ('1/3 %', progPerc))
+    sys.stdout.write("\r%s%s" % ('1/4 %', progPerc))
     sys.stdout.flush()
 fullMovList.append(string)
 
@@ -150,7 +153,7 @@ for prog, line in enumerate(dirList):
     fullMovList[movInd] += " " + line[1]
     progPerc = str(prog / (len(dirList)))
     progPerc = progPerc[0:4]
-    sys.stdout.write("\r%s%s" % ('2/3 %', progPerc))
+    sys.stdout.write("\r%s%s" % ('2/4 %', progPerc))
     sys.stdout.flush()
 ##################################################
 # getting actors
@@ -182,15 +185,44 @@ for prog, line in enumerate(actorList):
     fullMovList[movInd] += " " + string
     progPerc = str(prog / (len(actorList)))
     progPerc = progPerc[0:4]
-    sys.stdout.write("\r%s%s" % ('3/3 %', progPerc))
+    sys.stdout.write("\r%s%s" % ('3/4 %', progPerc))
     sys.stdout.flush()
+
+movID = 0
+string = ''
+firstCheck = False
+for prog, line in enumerate(genresList):
+    if movID != line[0]:
+        if not mVectExists(movList, line[0]):
+            movInd = len(fullMovList)
+            movID = line[0]
+            movie = [line[0]]
+            movVect = movInd
+            movie.append(movVect)
+            movList.append(movie)
+            fullMovList.append(string)
+        for x in movList:
+            if x[0] == line[0]:
+                movInd = x[1]
+                break
+    fullMovList[movInd] += " " + line[1]
+    progPerc = str(prog / (len(genresList)))
+    progPerc = progPerc[0:4]
+    sys.stdout.write("\r%s%s" % ('4/4 %', progPerc))
+    sys.stdout.flush()
+
+
 # print('\rDone')
 # print("The first full movie list is now: ", fullMovList[0])
 
-vectorizer = TfidfVectorizer()
+vectorizer = TfidfVectorizer(max_features=400)
 vector = vectorizer.fit_transform(fullMovList)
-# vector = vector.toarray()
+vector = vector.toarray()
 print('\rDone')
+# print(fullMovList[0])
+# for x in vector:
+#     print(len(x))
+#     print(x)
 # print(vector[0])
 # placeholder vector
 def getVector(mID):
@@ -200,29 +232,37 @@ def getVector(mID):
     return np.array([9, 9])
 
 
+# for x in testList:
+#     vect = getVector(x[1])
+#     print(vect.shape)
+#
+# for x in trainList:
+#     vect = getVector(x[1])
+#     print(vect.shape)
 
-
-def checkMiss(mid, mList):
-    for el in mList:
-        if mid == el:
-            return False
-    return True
-
-missingMovies = []
-for x in testList:
-    vect = getVector(x[1])
-    if np.array_equal(vect, np.array([9, 9])):
-        if checkMiss(x[1], missingMovies):
-            missingMovies.append(x[1])
-print("test ", len(missingMovies))
-
-tmissingMovies = []
-for x in trainList:
-    vect = getVector(x[1])
-    if np.array_equal(vect, np.array([9, 9])):
-        if checkMiss(x[1], tmissingMovies):
-            tmissingMovies.append(x[1])
-print("train ", len(tmissingMovies))
+# def checkMiss(mid, mList):
+#     for el in mList:
+#         if mid == el:
+#             return False
+#     return True
+#
+# missingMovies = []
+# for x in testList:
+#     vect = getVector(x[1])
+#     if np.array_equal(vect, np.array([9, 9])):
+#         if checkMiss(x[1], missingMovies):
+#             missingMovies.append(x[1])
+# print("test ", len(missingMovies))
+# print(missingMovies)
+#
+# tmissingMovies = []
+# for x in trainList:
+#     vect = getVector(x[1])
+#     if np.array_equal(vect, np.array([9, 9])):
+#         if checkMiss(x[1], tmissingMovies):
+#             tmissingMovies.append(x[1])
+# print("train ", len(tmissingMovies))
+# print(tmissingMovies)
 userProfiles = []
 print("Creating User Taste Profiles")
 curUser = 0
@@ -276,25 +316,40 @@ for prog, line in enumerate(testList):
     # get movie vector and store to variable testMovVect
     testMovVect = getVector(line[1]).reshape(1, -1)
     # print(index)
-    # print(len(testMovVect[0]))
+    # print(len(testMovVect))
     # print(len(userProfiles[index][1]))
     # print(userProfiles[index][1])
     similarities = cosine_similarity(userProfiles[index][1], testMovVect)
     # print(similarities)
-    sortO = (-similarities).argsort(axis=1)[:k]
+    sortO = (-similarities).argsort(axis=0)[:k]
     # print("sortO is: ", sortO)
+    # print(len(sortO))
     weightTot = 0
     weightSum = 0
     for a in range(len(sortO)):
         x = int(sortO[a])
-        # print("similarities[0][x] is: ", similarities[0][x])
-        # print("user profiles is: ", userProfiles[index][2][x])
+        # print("similarities[0][x] is: ", similarities[x])
+        # print("user profiles is: ", userProfiles[index][x])
         weightTot += float(similarities[x])
-        weightSum = float(similarities[x]) * float(userProfiles[index][2][x])
-        progPerc = str(prog / (len(testList)))
-        progPerc = progPerc[0:4]
-        sys.stdout.write("\r%s%s" % ('%', progPerc))
-        sys.stdout.flush()
-outputScores.append(weightSum/weightTot)
-print("The output scores are\n", outputScores)
-
+        # print(weightTot)
+        weightSum += float(similarities[x]) * float(userProfiles[index][2][x])
+        # print(weightSum)
+    progPerc = str(prog / (len(testList)))
+    progPerc = progPerc[0:4]
+    sys.stdout.write("\r%s%s" % ('%', progPerc))
+    sys.stdout.flush()
+    if weightTot == 0:
+        outputScores.append(np.round(2.5, decimals=1))
+    else:
+        outputScores.append(np.round(weightSum/weightTot, decimals=1))
+print("\rDone")
+try:
+    os.remove("output.dat")
+except OSError:
+    pass
+output = open("output.dat", "w", encoding="utf8")
+for x in outputScores:
+    output.write(str(x))
+    output.write('\n')
+    output.flush()
+output.close()

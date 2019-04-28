@@ -22,7 +22,7 @@ with open('movie_actors.dat', 'r') as actorFile:
 dirList = []
 with open('movie_directors.dat', 'r') as dirFile:
     for line in dirFile:
-        dirSplitLine = line.split(' ')
+        dirSplitLine = line.split('')
         dirList.append(dirSplitLine)
         dirList[-1][-1] = dirList[-1][-1].replace('\n', '')
 # print(dirList[1])
@@ -75,6 +75,14 @@ def getTagString(tagID):
             return i[1]
     return ''
 
+
+def mVectExists(movVects, mID):
+    for x in movVects:
+        if mID == x[0]:
+            return True
+    return False
+
+
 def uexists(profiles, uid):
     for x in profiles:
         if uid == x[0]:
@@ -119,8 +127,12 @@ for prog,x in enumerate(mTagsList):
     progPerc = progPerc[0:4]
     sys.stdout.write("\r%s%s" % ('%', progPerc))
     sys.stdout.flush()
+
+
 print('\rDone')
 fullMovList.append(string)
+
+
 
 vectorizer = TfidfVectorizer()
 vector = vectorizer.fit_transform(fullMovList)

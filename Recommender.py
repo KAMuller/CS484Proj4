@@ -22,7 +22,7 @@ with open('movie_actors.dat', 'r') as actorFile:
 dirList = []
 with open('movie_directors.dat', 'r') as dirFile:
     for line in dirFile:
-        dirSplitLine = line.split('')
+        dirSplitLine = line.split('\t')
         dirList.append(dirSplitLine)
         dirList[-1][-1] = dirList[-1][-1].replace('\n', '')
 # print(dirList[1])
@@ -129,14 +129,39 @@ for prog,x in enumerate(mTagsList):
     sys.stdout.flush()
 
 
-print('\rDone')
+
+
 fullMovList.append(string)
 
+movID = 0
+string = ''
+firstCheck = False
+for prog, line in enumerate(dirList):
+    if movID != line[0]:
+        if not mVectExists(movList, line[0]):
+            movInd = len(fullMovList)
+            movID = line[0]
+            movie = [line[0]]
+            movVect = movInd
+            movie.append(movVect)
+            movList.append(movie)
+            fullMovList.append(string)
+        for x in movList:
+            if x[0] == line[0]:
+                movInd = x[1]
+                break
+    fullMovList[movInd] += " " + line[1]
+    progPerc = str(prog / (len(dirList)))
+    progPerc = progPerc[0:4]
+    sys.stdout.write("\r%s%s" % ('%', progPerc))
+    sys.stdout.flush()
 
+# print(fullMovList[0])
 
 vectorizer = TfidfVectorizer()
 vector = vectorizer.fit_transform(fullMovList)
 vector = vector.toarray()
+print('\rDone')
 print(vector[0])
 # placeholder vector
 def getVector(mID):

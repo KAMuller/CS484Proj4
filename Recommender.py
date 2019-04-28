@@ -14,9 +14,10 @@ with open('Train.dat', 'r') as trainFile:
 actorList = []
 with open('movie_actors.dat', 'r') as actorFile:
     for line in actorFile:
-        actSplitLine = line.split(' ')
+        actSplitLine = line.split('\t')
         actorList.append(actSplitLine)
         actorList[-1][-1] = actorList[-1][-1].replace('\n', '')
+    actorList = actorList[1:-1]
 # print(actorList[1])
 
 dirList = []
@@ -125,12 +126,8 @@ for prog,x in enumerate(mTagsList):
         a = a - 1
     progPerc = str(prog/(len(mTagsList)))
     progPerc = progPerc[0:4]
-    sys.stdout.write("\r%s%s" % ('%', progPerc))
+    sys.stdout.write("\r%s%s" % ('1/3 %', progPerc))
     sys.stdout.flush()
-
-
-
-
 fullMovList.append(string)
 
 movID = 0
@@ -153,10 +150,42 @@ for prog, line in enumerate(dirList):
     fullMovList[movInd] += " " + line[1]
     progPerc = str(prog / (len(dirList)))
     progPerc = progPerc[0:4]
-    sys.stdout.write("\r%s%s" % ('%', progPerc))
+    sys.stdout.write("\r%s%s" % ('2/3 %', progPerc))
+    sys.stdout.flush()
+##################################################
+# getting actors
+rank_hold = 0
+movID = 0
+string = ''
+firstCheck = False
+for prog, line in enumerate(actorList):
+    if movID != line[0]:
+        if not mVectExists(movList, line[0]):
+            movInd = len(fullMovList)
+            movID = line[0]
+            movie = [line[0]]
+            movVect = movInd
+            movie.append(movVect)
+            movList.append(movie)
+            fullMovList.append(string)
+        for x in movList:
+            if x[0] == line[0]:
+                movInd = x[1]
+                break
+    rank_hold = int(line[3])
+    if rank_hold > 5:
+        continue
+    string = ''
+    while rank_hold <= 5:
+        string += line[1] + " "
+        rank_hold += 1
+    fullMovList[movInd] += " " + string
+    progPerc = str(prog / (len(actorList)))
+    progPerc = progPerc[0:4]
+    sys.stdout.write("\r%s%s" % ('3/3 %', progPerc))
     sys.stdout.flush()
 
-# print(fullMovList[0])
+print("The first full movie list is now: ", fullMovList[0])
 
 vectorizer = TfidfVectorizer()
 vector = vectorizer.fit_transform(fullMovList)
@@ -170,6 +199,18 @@ def getVector(mID):
             return vector[i[1]]
     return 0
 trainList = trainList[1:-1]
+def checkMiss(mid, mList):
+    for el in mList:
+        if mid == el:
+            return False
+    return True
+missingMovies = []
+for x in testList:
+    vect = getVector(x[1])
+    if np.array_equal(vect, np.array([9, 9])):
+        if checkMiss(x[1], missingMovies):
+            missingMovies.append(x[1])
+print(len(missingMovies))
 userProfiles = []
 print("Creating User Taste Profiles")
 curUser = 0
@@ -218,15 +259,11 @@ for line in testList:
     # get movie vector and store to variable testMovVect
     testMovVect = getVector(line[1]).reshape(1, -1)
     similarities = cosine_similarity(testMovVect, userProfiles[index][1])
-    print(similarities)
     sortO = (-similarities).argsort(axis=1)[:k]
-    print("sortO is: ", sortO)
     weightTot = 0
     weightSum = 0
     for a in range(len(sortO)):
         x = int(sortO[0][a])
-        print("similarities[0][x] is: ", similarities[0][x])
-        print("user profiles is: ", userProfiles[index][2][x])
         weightTot += float(similarities[0][x])
         weightSum = float(similarities[0][x]) * float(userProfiles[index][2][x])
 outputScores.append(weightSum/weightTot)

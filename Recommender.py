@@ -131,8 +131,23 @@ def getVector(mID):
     for i in movList:
         if i[0] == mID:
             return vector[i[1]]
-    return 0
+    return np.array([9, 9])
 trainList = trainList[1:-1]
+
+def checkMiss(mid, mList):
+    for el in mList:
+        if mid == el:
+            return False
+    return True
+
+
+missingMovies = []
+for x in testList:
+    vect = getVector(x[1])
+    if np.array_equal(vect, np.array([9, 9])):
+        if checkMiss(x[1], missingMovies):
+            missingMovies.append(x[1])
+print(len(missingMovies))
 userProfiles = []
 print("Creating User Taste Profiles")
 curUser = 0
@@ -149,8 +164,12 @@ for prog, line in enumerate(trainList):
         userProfiles.append(profile)
         index = getuidindex(userProfiles, line[0])
     # get movie vector from id here, store vector in movieVect
-    userProfiles[index][1].append(getVector(line[1]))
-    userProfiles[index][2].append(line[2])
+    vect = getVector(line[1])
+    if not np.array_equal(vect, np.array([9, 9])):
+        userProfiles[index][1].append(getVector(line[1]))
+        userProfiles[index][2].append(line[2])
+    # else:
+        # print("no tags for ", line[1])
     progPerc = str(prog/(len(trainList)))
     progPerc = progPerc[0:4]
     sys.stdout.write("\r%s%s" % ('%', progPerc))
@@ -170,8 +189,6 @@ print("\rDone")
 # print("The movie vectors for profile 0 are: ", userProfiles[0][1], "Length: ", len(userProfiles[0][1]))
 # print("The movie scores for profile 0 are: ", userProfiles[0][2], "Length: ", len(userProfiles[0][2]))
 # exit()
-for x in userProfiles:
-    x[1] = np.array(x[1]).astype(np.float)
 k = 15
 outputScores = []
 # testList = the data from test.dat

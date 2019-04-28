@@ -156,7 +156,7 @@ for prog, line in enumerate(trainList):
     sys.stdout.write("\r%s%s" % ('%', progPerc))
     sys.stdout.flush()
 print("\rDone")
-print("There are: ", len(userProfiles), "User Profiles")
+# print("There are: ", len(userProfiles), "User Profiles")
 # movMin = 99999
 # movMax = 0
 # for x in userProfiles:
@@ -166,10 +166,12 @@ print("There are: ", len(userProfiles), "User Profiles")
 #         movMax = len(x[1])
 # print(movMin)
 # print(movMax)
-print("The first user is: ", userProfiles[0][0])
-print("The movie vectors for profile 0 are: ", userProfiles[0][1], "Length: ", len(userProfiles[0][1]))
-print("The movie scores for profile 0 are: ", userProfiles[0][2], "Length: ", len(userProfiles[0][2]))
+# print("The first user is: ", userProfiles[0][0])
+# print("The movie vectors for profile 0 are: ", userProfiles[0][1], "Length: ", len(userProfiles[0][1]))
+# print("The movie scores for profile 0 are: ", userProfiles[0][2], "Length: ", len(userProfiles[0][2]))
 # exit()
+for x in userProfiles:
+    x[1] = np.array(x[1]).astype(np.float)
 k = 15
 outputScores = []
 # testList = the data from test.dat
@@ -180,18 +182,22 @@ for line in testList:
     index = getuidindex(userProfiles, line[0])
     # get movie vector and store to variable testMovVect
     testMovVect = getVector(line[1]).reshape(1, -1)
-    similarities = cosine_similarity(testMovVect, userProfiles[index][1])
-    print(similarities)
+    print(index)
+    print(len(testMovVect[0]))
+    print(len(userProfiles[index][1]))
+    # print(userProfiles[index][1])
+    similarities = cosine_similarity(userProfiles[index][1], testMovVect)
+    # print(similarities)
     sortO = (-similarities).argsort(axis=1)[:k]
-    print("sortO is: ", sortO)
+    # print("sortO is: ", sortO)
     weightTot = 0
     weightSum = 0
     for a in range(len(sortO)):
-        x = int(sortO[0][a])
-        print("similarities[0][x] is: ", similarities[0][x])
-        print("user profiles is: ", userProfiles[index][2][x])
-        weightTot += float(similarities[0][x])
-        weightSum = float(similarities[0][x]) * float(userProfiles[index][2][x])
+        x = int(sortO[a])
+        # print("similarities[0][x] is: ", similarities[0][x])
+        # print("user profiles is: ", userProfiles[index][2][x])
+        weightTot += float(similarities[x])
+        weightSum = float(similarities[x]) * float(userProfiles[index][2][x])
 outputScores.append(weightSum/weightTot)
 print("The output scores are\n", outputScores)
 
